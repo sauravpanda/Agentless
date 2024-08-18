@@ -31,12 +31,9 @@
 First create the environment 
 
 ```shell
-git clone https://github.com/OpenAutoCoder/Agentless.git
+git clone https://github.com/sauravpanda/Agentless.git
 cd Agentless
-
-conda create -n agentless python=3.11 
-conda activate agentless
-pip install -r requirements.txt
+poetry install
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 ```
 
@@ -45,7 +42,7 @@ export PYTHONPATH=$PYTHONPATH:$(pwd)
 
 ```shell
 # for contribution, please install the pre-commit hook.
-pre-commit install  # this allows a more standardized code style
+poetry run pre-commit install  # this allows a more standardized code style
 ```
 
 </div>
@@ -83,7 +80,7 @@ Run the following command to generate the edit locations:
 
 ```shell
 mkdir results # where we will save our results
-python agentless/fl/localize.py --file_level --related_level --fine_grain_line_level \
+poetry run python agentless/fl/localize.py --file_level --related_level --fine_grain_line_level \
                                 --output_folder results/location --top_n 3 \
                                 --compress \
                                 --context_window=10 
@@ -118,7 +115,7 @@ We first start by localization to specific files
 
 ```shell
 mkdir results # where we will save our results
-python agentless/fl/localize.py --file_level --output_folder results/file_level
+poetry run python agentless/fl/localize.py --file_level --output_folder results/file_level
 ```
 
 This command saves the file-level localization in `results/file_level/loc_outputs.jsonl`, you can also check `results/file_level/localize.log` for detailed logs
@@ -128,7 +125,7 @@ This command saves the file-level localization in `results/file_level/loc_output
 Next, we localize to related elements within each of the files we localize
 
 ```shell
-python agentless/fl/localize.py --related_level \
+poetry run python agentless/fl/localize.py --related_level \
                                 --output_folder results/related_level \
                                 --start_file results/file_level/loc_outputs.jsonl \
                                 --top_n 3 --compress
@@ -143,7 +140,7 @@ Similar to the previous stage, this command saves the related-element localizati
 Finally, we take the related elements from the previous step and localize to the edit locations we want the LLM to generate patches for
 
 ```shell
-python agentless/fl/localize.py --fine_grain_line_level \
+poetry run python agentless/fl/localize.py --fine_grain_line_level \
                                 --output_folder results/edit_location \
                                 --start_file results/related_level/loc_outputs.jsonl \
                                 --top_n 3 --context_window=10 
@@ -159,7 +156,7 @@ The final edit locations **Agentless** will perform repair on is saved in `resul
 For the last localization step of localizing to edit locations, we can also perform sampling to obtain multiple sets of edit locations. 
 
 ```shell
-python agentless/fl/localize.py --fine_grain_line_level \
+poetry run python agentless/fl/localize.py --fine_grain_line_level \
                                 --output_folder results/edit_location_samples \
                                 --start_file results/related_level/loc_outputs.jsonl \
                                 --top_n 3 --context_window=10 --temperature 0.8 \
@@ -171,7 +168,7 @@ This command will sample with temperature 0.8 and generate 4 edit location sets.
 Run the following command to merge:
 
 ```shell
-python agentless/fl/localize.py --merge \
+poetry run python agentless/fl/localize.py --merge \
                                 --output_folder results/edit_location_samples_merged \
                                 --start_file results/edit_location_samples/loc_outputs.jsonl \
                                 --num_samples 4
@@ -193,7 +190,7 @@ Using the edit locations (i.e., `found_edit_locs`) from before, we now perform r
 Run the following command to generate the patches:
 
 ```shell
-python agentless/repair/repair.py --loc_file results/location/loc_outputs.jsonl \
+poetry run python agentless/repair/repair.py --loc_file results/location/loc_outputs.jsonl \
                                   --output_folder results/repair \
                                   --loc_interval --top_n=3 --context_window=10 \
                                   --max_samples 10  --cot --diff_format \
@@ -211,7 +208,7 @@ This command generates 10 samples (1 greedy and 9 via temperature sampling) as d
 Finally, we perform majority voting to select the final patch to solve each issue. Run the following command:
 
 ```shell
-python agentless/repair/rerank.py --patch_folder results/repair --num_samples 10 --deduplicate --plausible
+poetry run python agentless/repair/rerank.py --patch_folder results/repair --num_samples 10 --deduplicate --plausible
 ```
 
 In this case, we use `--num_samples 10` to pick from the 10 samples we generated previously, `--deduplicate` to apply normalization to each patch for better voting, and `--plausible` to select patches that can pass the previous regression tests (*warning: this feature is not yet implemented*)
