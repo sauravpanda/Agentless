@@ -166,6 +166,7 @@ def localize_instance(
         additional_artifact_loc_edit_location = [additional_artifact_loc_edit_location]
 
     with open(args.output_file, "a") as f:
+        print("Writing file data to: ", args.output_file)
         f.write(
             json.dumps(
                 {
@@ -226,9 +227,10 @@ def merge(args):
         for locs in start_file_locs:
             merged_found_locs = []
             if "found_edit_locs" in locs and len(locs["found_edit_locs"]):
-                merged_found_locs = [
-                    "\n".join(x) for x in locs["found_edit_locs"][st_id]
-                ]
+                if st_id in locs["found_edit_locs"]:
+                    merged_found_locs = [
+                        "\n".join(x) for x in locs["found_edit_locs"][st_id]
+                    ]
             merged_locs.append({**locs, "found_edit_locs": merged_found_locs})
         with open(
             f"{args.output_folder}/loc_merged_{st_id}-{en_id}_outputs.jsonl", "w"
